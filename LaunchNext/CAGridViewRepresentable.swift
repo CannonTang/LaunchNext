@@ -43,6 +43,7 @@ struct CAGridViewRepresentable: NSViewRepresentable {
         view.enableIconPreload = false
         view.scrollSensitivity = appStore.scrollSensitivity
         view.reverseWheelPagingDirection = appStore.reverseWheelPagingDirection
+        view.scrollPagingInputSource = appStore.scrollPagingInputSource
         view.hoverMagnificationEnabled = appStore.enableHoverMagnification
         view.hoverMagnificationScale = CGFloat(appStore.hoverMagnificationScale)
         view.activePressEffectEnabled = appStore.enableActivePressEffect
@@ -262,6 +263,7 @@ struct CAGridViewRepresentable: NSViewRepresentable {
         nsView.enableIconPreload = false
         nsView.scrollSensitivity = appStore.scrollSensitivity
         nsView.reverseWheelPagingDirection = appStore.reverseWheelPagingDirection
+        nsView.scrollPagingInputSource = appStore.scrollPagingInputSource
         nsView.hoverMagnificationEnabled = appStore.enableHoverMagnification
         nsView.hoverMagnificationScale = CGFloat(appStore.hoverMagnificationScale)
         nsView.activePressEffectEnabled = appStore.enableActivePressEffect

@@ -57,6 +57,7 @@ final class CAFolderGridView: NSView {
     var isLayoutLocked: Bool = false
     var scrollSensitivity: Double = AppStore.defaultScrollSensitivity
     var reverseWheelPagingDirection: Bool = false
+    var scrollPagingInputSource: AppStore.ScrollPagingInputSource = .vertical
     var verticalHeaderHeight: CGFloat = 0 {
         didSet {
             guard verticalHeaderHeight != oldValue else { return }
@@ -676,11 +677,12 @@ final class CAFolderGridView: NSView {
     }
 
     private func handlePagedScroll(_ event: NSEvent) {
-        let deltaX = event.scrollingDeltaX
-        let deltaY = event.scrollingDeltaY
+        let axes = resolvedPagedAxes(for: event)
+        let deltaX = axes.x
+        let deltaY = axes.y
         let dominant = scaledPageDelta(deltaX: deltaX, deltaY: deltaY)
 
-        if !event.hasPreciseScrollingDeltas {
+        if !isContinuousScrollGesture(event) {
             if dominant != 0 {
                 handleWheelPaging(with: dominant)
             }
@@ -724,8 +726,33 @@ final class CAFolderGridView: NSView {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.12, execute: workItem)
     }
 
+    private func primaryPagedDelta(deltaX: CGFloat, deltaY: CGFloat) -> CGFloat {
+        switch scrollPagingInputSource {
+        case .vertical:
+            return -deltaY
+        case .horizontal:
+            return deltaX
+        case .automatic:
+            return abs(deltaX) > abs(deltaY) ? deltaX : -deltaY
+        }
+    }
+
+    private func isContinuousScrollGesture(_ event: NSEvent) -> Bool {
+        !event.phase.isEmpty || !event.momentumPhase.isEmpty
+    }
+
+    private func resolvedPagedAxes(for event: NSEvent) -> (x: CGFloat, y: CGFloat) {
+        if isContinuousScrollGesture(event) {
+            return (event.scrollingDeltaX, event.scrollingDeltaY)
+        }
+
+        let deltaX = event.deltaX != 0 ? event.deltaX : event.scrollingDeltaX
+        let deltaY = event.deltaY != 0 ? event.deltaY : event.scrollingDeltaY
+        return (deltaX, deltaY)
+    }
+
     private func scaledPageDelta(deltaX: CGFloat, deltaY: CGFloat) -> CGFloat {
-        let rawDelta = abs(deltaX) > abs(deltaY) ? deltaX : -deltaY
+        let rawDelta = primaryPagedDelta(deltaX: deltaX, deltaY: deltaY)
         let baseline = max(AppStore.defaultScrollSensitivity, 0.0001)
         let sensitivityScale = CGFloat(max(scrollSensitivity, 0.0001) / baseline)
         return rawDelta * sensitivityScale
@@ -821,10 +848,10 @@ final class CAFolderGridView: NSView {
 
     private func handleVerticalScroll(_ event: NSEvent) {
         let metrics = makeMetrics()
-        let raw = event.scrollingDeltaY
+        let raw = resolvedPagedAxes(for: event).y
         let baseline = max(AppStore.defaultScrollSensitivity, 0.0001)
         let sensitivityScale = CGFloat(max(scrollSensitivity, 0.0001) / baseline)
-        var delta = (event.hasPreciseScrollingDeltas ? raw : -raw) * sensitivityScale
+        var delta = (isContinuousScrollGesture(event) ? raw : -raw) * sensitivityScale
         if reverseWheelPagingDirection {
             delta = -delta
         }
