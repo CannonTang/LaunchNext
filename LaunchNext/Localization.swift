@@ -158,6 +158,11 @@ enum LocalizationKey: String {
     case backgroundImageSourceTitle
     case backgroundImageSourceLiveDesktop
     case backgroundImageSourceWallpaper
+    case backgroundImageSourceCustomImage
+    case customBackgroundImageChoose
+    case customBackgroundImageClear
+    case customBackgroundImageHint
+    case customBackgroundImageError
     case wallpaperBlurStrengthTitle
     case folderPreviewHighResTitle
     case folderPreviewHighResHint
@@ -704,6 +709,11 @@ final class LocalizationManager {
                 .backgroundImageSourceTitle: "Background image source",
                 .backgroundImageSourceLiveDesktop: "Live desktop",
                 .backgroundImageSourceWallpaper: "Wallpaper image",
+                .backgroundImageSourceCustomImage: "Custom image",
+                .customBackgroundImageChoose: "Choose image…",
+                .customBackgroundImageClear: "Clear custom image",
+                .customBackgroundImageHint: "The selected image is copied into LaunchNext and shared across displays.",
+                .customBackgroundImageError: "Could not import the selected image.",
                 .wallpaperBlurStrengthTitle: "Wallpaper blur strength",
                 .folderPreviewHighResTitle: "High-resolution folder previews",
                 .folderPreviewHighResHint: "Render folder icons at Retina scale for sharper previews (uses more memory).",
@@ -1482,6 +1492,11 @@ final class LocalizationManager {
                 .backgroundImageSourceTitle: "背景图来源",
                 .backgroundImageSourceLiveDesktop: "实时桌面",
                 .backgroundImageSourceWallpaper: "壁纸图像",
+                .backgroundImageSourceCustomImage: "自定义图片",
+                .customBackgroundImageChoose: "选择图片…",
+                .customBackgroundImageClear: "清除自定义图片",
+                .customBackgroundImageHint: "所选图片会复制到 LaunchNext，并在所有显示器上共用。",
+                .customBackgroundImageError: "无法导入所选图片。",
                 .wallpaperBlurStrengthTitle: "壁纸模糊强度",
                 .folderPreviewHighResTitle: "高分辨率文件夹预览",
                 .folderPreviewHighResHint: "以 Retina 像素渲染文件夹图标，更清晰（占用更多内存）。",

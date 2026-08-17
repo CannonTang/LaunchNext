@@ -197,6 +197,7 @@ final class AppStore: ObservableObject {
     enum BackgroundImageSource: String, CaseIterable, Codable, Identifiable {
         case liveDesktop
         case wallpaper
+        case customImage
 
         var id: String { rawValue }
 
@@ -204,6 +205,7 @@ final class AppStore: ObservableObject {
             switch self {
             case .liveDesktop: return .backgroundImageSourceLiveDesktop
             case .wallpaper: return .backgroundImageSourceWallpaper
+            case .customImage: return .backgroundImageSourceCustomImage
             }
         }
     }
@@ -694,6 +696,9 @@ final class AppStore: ObservableObject {
             UserDefaults.standard.set(launchpadBackgroundImageSource.rawValue, forKey: Self.backgroundImageSourceKey)
         }
     }
+
+    private let customBackgroundImageStore = CustomBackgroundImageStore()
+    @Published private(set) var customBackgroundImage: NSImage? = nil
 
     @Published var wallpaperBlurRadius: Double = AppStore.loadWallpaperBlurRadius() {
         didSet {
@@ -2779,6 +2784,7 @@ final class AppStore: ObservableObject {
         self.gestureShowAllInputDevices = defaults.object(forKey: Self.gestureShowAllInputDevicesKey) as? Bool ?? false
         self.enableAnimations = UserDefaults.standard.object(forKey: "enableAnimations") as? Bool ?? true
         self.customIconFileURL = AppStore.customIconFileURL
+        self.customBackgroundImage = customBackgroundImageStore.load()
 
         let fallbackIcon = (NSApplication.shared.applicationIconImage?.copy() as? NSImage) ?? NSImage(size: NSSize(width: 512, height: 512))
         self.defaultAppIcon = fallbackIcon
@@ -6010,6 +6016,20 @@ final class AppStore: ObservableObject {
         try? FileManager.default.removeItem(at: customIconFileURL)
         hasCustomAppIcon = false
         currentAppIcon = defaultAppIcon
+    }
+
+    @discardableResult
+    func setCustomBackgroundImage(from url: URL) -> Bool {
+        guard let image = NSImage(contentsOf: url), customBackgroundImageStore.save(image) else { return false }
+        customBackgroundImage = customBackgroundImageStore.load()
+        launchpadBackgroundImageSource = .customImage
+        return customBackgroundImage != nil
+    }
+
+    func resetCustomBackgroundImage() {
+        customBackgroundImageStore.clear()
+        customBackgroundImage = nil
+        launchpadBackgroundImageSource = .wallpaper
     }
 
     private func applyCurrentAppIcon() {

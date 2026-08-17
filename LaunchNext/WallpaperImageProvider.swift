@@ -13,8 +13,13 @@ enum WallpaperImageProvider {
         return unsafeBitCast(symbol, to: CGWindowListCreateImageFn.self)
     }()
 
-    static func image(for screen: NSScreen) -> NSImage? {
-        preferredImage(
+    static func image(for screen: NSScreen, customImage: NSImage? = nil) -> NSImage? {
+        if let customImage {
+            let image = customImage.copy() as? NSImage ?? customImage
+            image.size = screen.frame.size
+            return image
+        }
+        return preferredImage(
             workspaceImage: { desktopImage(for: screen) },
             capturedImage: { captureDesktopWallpaper(for: screen) }
         )

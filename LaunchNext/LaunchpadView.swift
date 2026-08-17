@@ -10,6 +10,7 @@ private struct WallpaperBackgroundView: NSViewRepresentable {
     let saturation: CGFloat
     let contrast: CGFloat
     let brightness: CGFloat
+    let customImage: NSImage?
 
     func makeNSView(context: Context) -> NSImageView {
         let view = NSImageView()
@@ -39,7 +40,7 @@ private struct WallpaperBackgroundView: NSViewRepresentable {
             return
         }
         view.identifier = NSUserInterfaceItemIdentifier(signature)
-        view.image = WallpaperImageProvider.image(for: screen).flatMap { image in
+        view.image = WallpaperImageProvider.image(for: screen, customImage: customImage).flatMap { image in
             processedImage(from: image,
                            blurRadius: blurRadius,
                            saturation: saturation,
@@ -54,7 +55,8 @@ private struct WallpaperBackgroundView: NSViewRepresentable {
                                            contrast: CGFloat,
                                            brightness: CGFloat) -> String {
         let frame = screen.frame
-        return "\(frame.origin.x),\(frame.origin.y),\(frame.size.width),\(frame.size.height),\(blurRadius),\(saturation),\(contrast),\(brightness)"
+        let imageSource = customImage == nil ? "system" : "custom"
+        return "\(frame.origin.x),\(frame.origin.y),\(frame.size.width),\(frame.size.height),\(blurRadius),\(saturation),\(contrast),\(brightness),\(imageSource)"
     }
 
     private func processedImage(from image: NSImage,
@@ -323,7 +325,7 @@ struct LaunchpadView: View {
     }
 
     private var usesWallpaperBackground: Bool {
-        appStore.launchpadBackgroundImageSource == .wallpaper
+        appStore.launchpadBackgroundImageSource == .wallpaper || appStore.launchpadBackgroundImageSource == .customImage
     }
 
     private var effectiveBackgroundStyle: AppStore.BackgroundStyle {
@@ -356,7 +358,8 @@ struct LaunchpadView: View {
                                     blurRadius: wallpaperBlurRadius,
                                     saturation: 1,
                                     contrast: 1,
-                                    brightness: 0)
+                                    brightness: 0,
+                                    customImage: appStore.launchpadBackgroundImageSource == .customImage ? appStore.customBackgroundImage : nil)
                 .ignoresSafeArea()
                 .scaleEffect(1.06)
                 .clipped()

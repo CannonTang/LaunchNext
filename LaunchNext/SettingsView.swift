@@ -87,6 +87,7 @@ struct SettingsView: View {
     @State private var lastUpdatesTabRefreshAt: Date? = nil
     @State private var wallpaperBlurRadiusDraft: Double = AppStore.defaultWallpaperBlurRadius
     @State private var isEditingWallpaperBlurRadius = false
+    @State private var customBackgroundImageImportError: String? = nil
     private let dockDragSelectableSides: [AppStore.DockDragSide] = [.bottom, .left, .right]
 
     // Sidebar sizing presets
@@ -226,6 +227,11 @@ struct SettingsView: View {
             Button(appStore.localized(.okButton), role: .cancel) { iconImportError = nil }
         } message: {
             Text(iconImportError ?? "")
+        }
+        .alert(appStore.localized(.backgroundImageSourceCustomImage), isPresented: Binding(get: { customBackgroundImageImportError != nil }, set: { if !$0 { customBackgroundImageImportError = nil } })) {
+            Button(appStore.localized(.okButton), role: .cancel) { customBackgroundImageImportError = nil }
+        } message: {
+            Text(customBackgroundImageImportError ?? "")
         }
         // .onChange(of: appStore.isAIEnabled) { enabled in
         //     if !enabled && isCapturingShortcut(.aiOverlay) {
@@ -2231,6 +2237,20 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
             if !appStore.setCustomAppIcon(from: url) {
                 iconImportError = appStore.localized(.customIconError)
             }
+        }
+    }
+
+    private func presentCustomBackgroundImagePicker() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.png, .jpeg, .tiff, .heic, .gif, .bmp]
+        panel.prompt = appStore.localized(.customBackgroundImageChoose)
+        panel.title = appStore.localized(.backgroundImageSourceCustomImage)
+
+        if panel.runModal() == .OK, let url = panel.url, !appStore.setCustomBackgroundImage(from: url) {
+            customBackgroundImageImportError = appStore.localized(.customBackgroundImageError)
         }
     }
 
@@ -4866,6 +4886,26 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
             HStack(spacing: 10) {
                 backgroundImageSourceOption(.liveDesktop, systemImage: "sparkles.tv")
                 backgroundImageSourceOption(.wallpaper, systemImage: "photo")
+                backgroundImageSourceOption(.customImage, systemImage: "photo.on.rectangle")
+            }
+
+            if appStore.launchpadBackgroundImageSource == .customImage {
+                HStack(spacing: 10) {
+                    Text(appStore.localized(.customBackgroundImageHint))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button(appStore.localized(.customBackgroundImageChoose)) {
+                        presentCustomBackgroundImagePicker()
+                    }
+                    .buttonStyle(.bordered)
+                    Button(appStore.localized(.customBackgroundImageClear)) {
+                        appStore.resetCustomBackgroundImage()
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.red)
+                    .disabled(appStore.customBackgroundImage == nil)
+                }
             }
         }
         .padding(14)
